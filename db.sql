@@ -7,6 +7,13 @@ CREATE TABLE raw_can (
 
 CREATE INDEX raw_can_id ON raw_can (id);
 
+CREATE TABLE raw_gpsd_json (
+	t timestamp without time zone PRIMARY KEY DEFAULT CURRENT_TIMESTAMP,
+	data jsonb
+);
+
+CREATE INDEX raw_gpsd_json_class ON raw_gpsd_json USING GIN ((data -> 'class'));
+
 CREATE VIEW controller AS
 	SELECT
 		t,
@@ -69,3 +76,21 @@ CREATE VIEW controller_status AS
 		raw_can
 	WHERE
 		id = (x'0CF11F05' << 3)::bit(29);
+
+CREATE VIEW gps AS
+	SELECT
+		t, speed, lat, lon
+	FROM (
+		SELECT
+			t,
+			CAST(data->'speed' AS numeric) AS speed,
+			CAST(data->'lat' AS numeric) AS lat,
+			CAST(data->'lon' AS numeric) AS lon
+		FROM
+			raw_gpsd_json
+		WHERE
+			data @> '{"class": "TPV"}'
+		) AS tbl
+	WHERE
+		-- FIXME: We should also check for infinity
+		speed != 'nan' AND lat != 'nan' AND lon != 'nan';
