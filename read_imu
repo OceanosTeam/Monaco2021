@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+import time
+import contextlib
+from lsm9ds1_rjg import Driver, I2CTransport
+import lsm9ds1_rjg
+
+
+PIN_INT1_AG = 23
+
+i2c_driver = lsm9ds1_rjg.Driver(
+        lsm9ds1_rjg.I2CTransport(1, lsm9ds1_rjg.I2CTransport.I2C_AG_ADDRESS, PIN_INT1_AG),
+        lsm9ds1_rjg.I2CTransport(1, lsm9ds1_rjg.I2CTransport.I2C_MAG_ADDRESS))
+
+with contextlib.closing(i2c_driver) as driver:
+    driver.configure()
+    while True:
+	time.sleep(1)
+
+	ag_status = driver.read_ag_status()
+	temp, acc, gyro = driver.read_ag_data()
+
+	if ag_status.temperature_data_available:
+            print("temp", temp)
+        if ag_status.accelerometer_data_available:
+            print("acc", acc)
+        if ag_status.gyroscope_data_available:
+            print("gyro", gyro)
+
+
+        mag_status = driver.read_magnetometer_status()
+	mag = driver.read_magnetometer()
+
+	    print("temp", temp, "acc", acc, "gyro", gyro)
+	    print("mag", mag)
