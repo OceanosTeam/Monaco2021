@@ -1,3 +1,5 @@
+CREATE EXTENSION btree_gist;
+
 CREATE TABLE raw_can (
 	t timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
 	id bit(29),
@@ -5,6 +7,7 @@ CREATE TABLE raw_can (
 	PRIMARY KEY (t, id)
 );
 
+CREATE INDEX raw_can_time_gist ON raw_can USING GIST (t);
 CREATE INDEX raw_can_id ON raw_can (id);
 
 CREATE TABLE raw_gpsd_json (
@@ -12,6 +15,7 @@ CREATE TABLE raw_gpsd_json (
 	data jsonb
 );
 
+CREATE INDEX raw_gpsd_json_time_gist ON raw_gpsd_json USING GIST (t);
 CREATE INDEX raw_gpsd_json_class ON raw_gpsd_json USING GIN ((data -> 'class'));
 
 CREATE VIEW controller AS
